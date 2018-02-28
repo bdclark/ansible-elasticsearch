@@ -1,0 +1,19 @@
+[Service]
+{% if es_max_open_files is not none %}
+# Specifies the maximum file descriptor number that can be opened by this process
+LimitNOFILE={{ es_max_open_files }}
+{% endif %}
+{% if es_max_threads is not none %}
+# Specifies the maximum number of processes
+LimitNPROC={{ es_max_threads }}
+{% endif %}
+# Specifies the maximum number of bytes of memory that may be locked into RAM
+# Set to "infinity" if you use the 'bootstrap.memory_lock: true' option
+# in elasticsearch.yml and 'MAX_LOCKED_MEMORY=unlimited' in es_environment_file
+{% if es_memory_lock_enabled  %}
+LimitMEMLOCK=infinity
+{% elif es_max_locked_memory is not none %}
+LimitMEMLOCK={{ es_max_locked_memory }}
+{% else %}
+#LimitMEMLOCK=infinity
+{% endif %}

@@ -1,0 +1,58 @@
+---
+# installation/package settings
+es_version: "6.2.2"
+es_apt_key: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+es_apt_url: "deb https://artifacts.elastic.co/packages/{{ es_version.split('.')[0] }}.x/apt stable main"
+
+# whether service will be enabled/started or disabled/stopped
+es_service_enabled: yes
+# whether to restart ES service when configuration has changed
+es_restart_on_change: no
+
+# ES directories
+es_data_dir: /var/lib/elasticsearch
+es_log_dir: /var/log/elasticsearch
+
+# optional specific uid/gid for elasticsearch user
+es_user_id: ~
+es_group_id: ~
+
+# heap size to be used in jvm.options (-Xms -Xmx will be set the same)
+es_heap_size: "{{ (ansible_memtotal_mb / 2) | int }}m"
+# list of additional JVM params to be passed into jvm.options
+es_jvm_additional_parameters: []
+
+# common config setting to be merged with es_config.
+es_node_name: "{{ ansible_hostname }}"
+es_cluster_name: elasticsearch
+
+# dictionary of settings to be rendered in elasticsearch.yml
+# use flattened format rather than nested dicts (examples below)
+es_config: {}
+  # cluster.name: elasticsearch
+  # bootstrap.memory_lock: true
+  # xpack.security.enabled: false
+
+# init/environment configuration setttings - leave nil to use ES default
+## override ES default of 65536
+es_max_open_files: ~
+## override ES default of 262144
+es_max_map_count: ~
+## if using 'bootstrap.memory_lock' this will be automatically overriden!
+es_max_locked_memory: ~
+## override ES default (boolean if not nil)
+es_restart_on_upgrade: ~
+## override ES default
+es_startup_sleep_time: 5
+## set JAVA_HOME env var
+es_java_home: ~
+## override max threads of 2048 (systemd only)
+es_max_threads: ~
+
+# whether to force a reinstall of plugins
+es_plugins_reinstall: no
+
+# templates used by this role
+es_environment_template: environment.sh.j2
+es_jvm_options_template: jvm.options-{{ es_version.split('.')[0] }}.j2
+es_config_template: elasticsearch.yml.j2

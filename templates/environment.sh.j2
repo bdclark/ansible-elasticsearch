@@ -1,0 +1,7 @@
+################################
+# Elasticsearch
+################################
+
+{% for k, v in es_environment_config.iteritems() if v is not none and v != '' %}
+{{ k }}={{ v }}
+{% endfor %}

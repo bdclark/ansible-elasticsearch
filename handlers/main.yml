@@ -1,0 +1,6 @@
+---
+- name: restart elasticsearch
+  service:
+    name: elasticsearch
+    state: restarted
+  when: es_restart_on_change and es_service_enabled

@@ -1,0 +1,95 @@
+---
+- name: create conf directory
+  file:
+    path: "{{ es_conf_dir }}"
+    state: directory
+    owner: root
+    group: elasticsearch
+    mode: "2750"
+
+- name: create log directory
+  file:
+    path: "{{ es_log_dir }}"
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: "0750"
+
+- name: create data directory(s)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: "0750"
+  with_items: "{{ es_data_dir }}"
+
+- name: create pid directory
+  file:
+    path: "{{ es_pid_dir }}"
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: "0755"
+
+- name: manage shell environment file
+  template:
+    src: "{{ es_environment_template }}"
+    dest: "{{ es_environment_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart elasticsearch
+
+- name: manage config files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ es_conf_dir }}/{{ item.dest }}"
+    owner: root
+    group: elasticsearch
+    mode: "0660"
+  notify: restart elasticsearch
+  with_items:
+    - src: "{{ es_jvm_options_template }}"
+      dest: jvm.options
+    - src: "{{ es_config_template }}"
+      dest: elasticsearch.yml
+
+- name: manage vm.max_map_count sysctl setting
+  copy:
+    content: "vm.max_map_count={{ es_max_map_count }}\n"
+    path: /usr/lib/sysctl.d/elasticsearch.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: es_max_map_count is not none
+  notify: restart elasticsearch
+
+- name: create systemd drop-in directory
+  file:
+    path: /etc/systemd/system/elasticsearch.service.d
+    state: directory
+    owner: root
+    group: root
+  when: ansible_service_mgr == 'systemd'
+
+- name: manage systemd elasticsearch limits drop-in unit
+  template:
+    src: systemd.j2
+    dest: /etc/systemd/system/elasticsearch.service.d/limits.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_service_mgr == 'systemd'
+  register: _es_systemd_dropin
+  notify: restart elasticsearch
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: _es_systemd_dropin.changed
+
+- name: remove unused sysvinit script
+  file:
+    path: /etc/init.d/elasticsearch
+    state: absent
+  when: ansible_service_mgr == 'systemd'

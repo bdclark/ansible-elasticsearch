@@ -1,0 +1,26 @@
+---
+- hosts: all
+  become: yes
+  pre_tasks:
+    - apt_repository:
+        repo: ppa:openjdk-r/ppa
+      when: ansible_distribution_version | version_compare('16.04', '<')
+    - apt:
+        name: openjdk-8-jre-headless
+      register: _openjdk
+    - command: /var/lib/dpkg/info/ca-certificates-java.postinst configure
+      when: _openjdk.changed
+  vars:
+    es_restart_on_change: yes
+    es_config:
+      bootstrap.memory_lock: true
+      xpack.monitoring.enabled: true
+      xpack.security.enabled: false
+      xpack.watcher.enabled: false
+      xpack.graph.enabled: false
+      xpack.ml.enabled: false
+    es_plugins:
+      - name: x-pack
+      - name: ingest-geoip
+  roles:
+    - role: elasticsearch

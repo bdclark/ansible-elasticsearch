@@ -1,0 +1,53 @@
+---
+- name: determine if plugin reinstall is necessary
+  set_fact:
+    es_plugins_reinstall: yes
+  when: _es_apt_install is defined and _es_apt_install.changed
+
+- name: list installed plugins
+  shell: "ls {{ es_home }}/plugins"
+  register: _es_installed_plugins
+  changed_when: no
+  ignore_errors: yes
+
+- name: determine plugins to remove/install (during re-install)
+  set_fact:
+    # remove plugins installed but not listed in es_plugins
+    _es_plugins_to_remove: "{{ _es_installed_plugins.stdout_lines | difference(es_plugins | json_query('[*].name')) | default([]) }}"
+    # install plugins listed in es_plugins not already installed
+    _es_plugins_to_install: "{{ es_plugins | json_query('[*].name') | difference(_es_installed_plugins.stdout_lines) | default([]) }}"
+  when: not es_plugins_reinstall
+
+- name: determine plugins to remove/install (not during re-install)
+  set_fact:
+    # remove all found on system
+    _es_plugins_to_remove: "{{ _es_installed_plugins.stdout_lines | default([]) }}"
+    # add all listed in es_plugins
+    _es_plugins_to_install: "{{ es_plugins | json_query('[*].name') | default([]) }}"
+  when: es_plugins_reinstall
+
+- name: remove elasticsearch plugins
+  command: "{{ es_home }}/bin/elasticsearch-plugin remove {{ item }} --silent"
+  ignore_errors: yes
+  with_items: "{{ _es_plugins_to_remove }}"
+  environment:
+    CONF_DIR: "{{ es_conf_dir }}"
+    ES_PATH_CONF: "{{ es_conf_dir }}"
+    ES_INCLUDE: "{{ es_environment_file }}"
+  notify: restart elasticsearch
+
+- name: install elasticsearch plugins
+  command: "{{ es_home }}/bin/elasticsearch-plugin install {{ item.url | default(item.name) }} --batch --silent"
+  when: item.name in _es_plugins_to_install
+  with_items: "{{ es_plugins }}"
+  register: plugin_installed
+  failed_when: "'ERROR' in plugin_installed.stdout"
+  changed_when: plugin_installed.rc == 0
+  notify: restart elasticsearch
+  environment:
+    CONF_DIR: "{{ conf_dir }}"
+    ES_PATH_CONF: "{{ conf_dir }}"
+    ES_INCLUDE: "{{ instance_default_file }}"
+  until: plugin_installed.rc == 0
+  retries: 5
+  delay: 5

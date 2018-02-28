@@ -1,0 +1,7 @@
+# ======================== Elasticsearch Configuration =========================
+
+{% if es_version | version_compare('6.0', '<') %}
+{{ es_default_config | combine({'path.conf': es_conf_dir}) | combine(es_config, recursive=True) | to_nice_yaml }}
+{% else %}
+{{ es_default_config | combine(es_config, recursive=True) | to_nice_yaml }}
+{% endif %}
