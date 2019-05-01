@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Brian Clark <brian@clark.zone>
+  description: Install and configure Elasticsearch
+
+  license: MIT
+  min_ansible_version: 2.5
+
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - 16.04
+        - 18.04
+
+  galaxy_tags: []
+
+dependencies: []
