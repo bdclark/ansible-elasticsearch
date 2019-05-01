@@ -1,13 +1,11 @@
 ---
-# tasks for elasticsearch
-
 - name: install apt-transport-https
   apt:
     name: apt-transport-https
     state: present
 
 - name: add elasticsearch repository key
-  become: yes
+  become: true
   apt_key:
     url: "{{ es_apt_key }}"
     state: present
@@ -19,9 +17,9 @@
     state: present
 
 - name: install elasticsearch
-  become: yes
+  become: true
   apt:
-    name: elasticsearch{% if es_version != "" %}={{ es_version }}{% endif %}
+    name: elasticsearch={{ es_version }}
     state: present
-  register: _es_apt_install
+  register: _es_install
   notify: restart elasticsearch

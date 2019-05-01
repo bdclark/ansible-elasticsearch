@@ -1,31 +1,16 @@
 ---
-- assert:
-    that: es_version is not none and es_version | string | match("^[56]\.\d+\.\d+")
-    msg: es_version major version must be 5 or 6 and full version must be specified
+- name: ensure supported version
+  assert:
+    that: es_version is not none and es_version | string is match("^[567]\.\d+\.\d+")
+    msg: es_version major version must be 5, 6, or 7 and full version must be specified
+
+- name: assert supported platform
+  assert:
+    that: ansible_os_family == 'Debian'
+    msg: Currently only Ubuntu/Debian are supported
 
 - name: include os-specific vars
   include_vars: "{{ ansible_os_family | lower }}.yml"
-
-- name: manage service group
-  group:
-    state: present
-    name: elasticsearch
-    system: yes
-    gid: "{{ es_group_id }}"
-  notify: restart elasticsearch
-  when: es_user_id is not none and us_group_id is not none
-
-- name: manage service user
-  user:
-    state: present
-    name: elasticsearch
-    comment: elasticsearch system user
-    system: yes
-    createhome: no
-    uid: "{{ es_user_id }}"
-    group: elasticsearch
-  notify: restart elasticsearch
-  when: es_user_id is not none and us_group_id is not none
 
 - name: include installation tasks ({{ ansible_os_family | lower }})
   include: "install-{{ ansible_os_family | lower }}.yml"
@@ -36,8 +21,11 @@
 - name: include plugin tasks
   include: plugins.yml
 
+- include_tasks: curator.yml
+  when: es_install_curator
+
 - name: manage service
   service:
     name: elasticsearch
-    state: "{{ es_service_enabled | bool | ternary('started', 'stopped') }}"
-    enabled: "{{ es_service_enabled }}"
+    state: "{{ es_start_service | ternary('started', 'stopped') }}"
+    enabled: "{{ es_enable_service }}"

@@ -18,8 +18,10 @@
 
 # Xms represents the initial size of total heap space
 # Xmx represents the maximum size of total heap space
-
-{% if es_heap_size != '' %}
+{% if es_dynamic_heap %}
+#-Xms2g
+#-Xmx2g
+{% elif es_heap_size | default(false) %}
 -Xms{{ es_heap_size }}
 -Xmx{{ es_heap_size }}
 {% else %}

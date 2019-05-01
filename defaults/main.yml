@@ -1,58 +1,61 @@
 ---
 # installation/package settings
-es_version: "6.2.2"
+es_version: 6.7.0
 es_apt_key: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
 es_apt_url: "deb https://artifacts.elastic.co/packages/{{ es_version.split('.')[0] }}.x/apt stable main"
 
-# whether service will be enabled/started or disabled/stopped
-es_service_enabled: yes
+# whether service will be enabled or disabled
+es_enable_service: true
+# whether service will be started or stopped
+es_start_service: true
 # whether to restart ES service when configuration has changed
-es_restart_on_change: no
+es_restart_on_change: false
 
-# ES directories
+# ES directories (set here rather than es_config)
+## data directory(s) - can be string or list of multiple
 es_data_dir: /var/lib/elasticsearch
+## log directory
 es_log_dir: /var/log/elasticsearch
 
-# optional specific uid/gid for elasticsearch user
-es_user_id: ~
-es_group_id: ~
-
+# heap size set automatically at startup (ignores es_heap_size)
+es_dynamic_heap: false
 # heap size to be used in jvm.options (-Xms -Xmx will be set the same)
 es_heap_size: "{{ (ansible_memtotal_mb / 2) | int }}m"
 # list of additional JVM params to be passed into jvm.options
 es_jvm_additional_parameters: []
 
-# common config setting to be merged with es_config.
-es_node_name: "{{ ansible_hostname }}"
-es_cluster_name: elasticsearch
-
 # dictionary of settings to be rendered in elasticsearch.yml
 # use flattened format rather than nested dicts (examples below)
 es_config: {}
-  # cluster.name: elasticsearch
-  # bootstrap.memory_lock: true
-  # xpack.security.enabled: false
+# cluster.name: elasticsearch
+# bootstrap.memory_lock: true
+# xpack.security.enabled: false
 
-# init/environment configuration setttings - leave nil to use ES default
-## override ES default of 65536
-es_max_open_files: ~
-## override ES default of 262144
-es_max_map_count: ~
-## if using 'bootstrap.memory_lock' this will be automatically overriden!
-es_max_locked_memory: ~
-## override ES default (boolean if not nil)
-es_restart_on_upgrade: ~
-## override ES default
-es_startup_sleep_time: 5
-## set JAVA_HOME env var
+# init configuration setttings (via systemd drop-in)
+## sets LimitNPROC - maximum number of threads
+es_max_threads: "{{ es_version is version_compare('6.0.0', '<') | ternary(2048, 4096) }}"
+
+## set JAVA_HOME env var (null to not set)
 es_java_home: ~
-## override max threads of 2048 (systemd only)
-es_max_threads: ~
+
+# list of plugins to install
+es_plugins: []
+# - plugin: my-standard-plugin
+# - url: http://my.plugin
 
 # whether to force a reinstall of plugins
-es_plugins_reinstall: no
+es_plugins_reinstall: false
+
+# whether to install curator
+es_install_curator: false
+# curator version (specific version, null for current, or 'latest' for latest)
+es_curator_version: ~
+# directory for virtualenv
+es_curator_install_dir: /usr/local/curator
+# directory to symlink virtualenv binaries (blank to not symlink)
+es_curator_bin_dir: /usr/local/bin
 
 # templates used by this role
-es_environment_template: environment.sh.j2
-es_jvm_options_template: jvm.options-{{ es_version.split('.')[0] }}.j2
+es_environment_template: environment.j2
+es_jvm_options_template: jvm.options{{ '-5' if es_version is version_compare('6.0.0', '<') else '' }}.j2
 es_config_template: elasticsearch.yml.j2

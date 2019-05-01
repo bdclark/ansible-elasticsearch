@@ -1,19 +1,41 @@
 [Service]
-{% if es_max_open_files is not none %}
-# Specifies the maximum file descriptor number that can be opened by this process
-LimitNOFILE={{ es_max_open_files }}
+{% if es_dynamic_heap %}
+# replace default ExecStart by prepending with ES_JAVA_OPTS
+# dynamically calculating -Xms/-Xmx as 1/2 total system memory
+ExecStart=
+ExecStart=/bin/sh -c " \
+  MEM_MB=$(($(grep MemTotal /proc/meminfo | awk '{print $2}') / 1024 / 2)) \
+  ES_JAVA_OPTS=\"-Xms$${MEM_MB}m -Xmx$${MEM_MB}m\" \
+  exec /usr/share/elasticsearch/bin/elasticsearch \
+    -p ${PID_DIR}/elasticsearch.pid \
+{% if (es_version is version_compare('6.0.0', '<')) %}
+    -Edefault.path.logs=${LOG_DIR} \
+    -Edefault.path.data=${DATA_DIR} \
+    -Edefault.path.conf=${CONF_DIR}" \
 {% endif %}
-{% if es_max_threads is not none %}
+    --quiet"
+{% endif %}
+
 # Specifies the maximum number of processes
 LimitNPROC={{ es_max_threads }}
-{% endif %}
+
+# Specifies the maximum size of virtual memory
+LimitAS=infinity
+
+# Specifies the maximum file size
+LimitFSIZE=infinity
+
+# Disable timeout logic and wait until process is stopped
+TimeoutStopSec=0
+
+# Send the signal only to the JVM rather than its control group
+KillMode=process
+
 # Specifies the maximum number of bytes of memory that may be locked into RAM
 # Set to "infinity" if you use the 'bootstrap.memory_lock: true' option
 # in elasticsearch.yml and 'MAX_LOCKED_MEMORY=unlimited' in es_environment_file
 {% if es_memory_lock_enabled  %}
 LimitMEMLOCK=infinity
-{% elif es_max_locked_memory is not none %}
-LimitMEMLOCK={{ es_max_locked_memory }}
 {% else %}
 #LimitMEMLOCK=infinity
 {% endif %}

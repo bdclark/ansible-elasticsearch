@@ -1,42 +1,23 @@
-
-describe service('elasticsearch') do
-  it { should be_installed }
-  it { should be_enabled }
-  it { should be_running }
-end
-
 describe file('/var/lib/elasticsearch') do
   it { should be_directory }
   it { should be_owned_by('elasticsearch') }
   it { should be_grouped_into('elasticsearch') }
-  its('mode') { should cmp '0750' }
-end
-
-describe file('/var/log/elasticsearch') do
-  it { should be_directory }
-  it { should be_owned_by('elasticsearch') }
-  it { should be_grouped_into('elasticsearch') }
-  its('mode') { should cmp '0750' }
-end
-
-describe file('/etc/elasticsearch') do
-  it { should be_directory }
-  it { should be_owned_by('root') }
-  it { should be_grouped_into('elasticsearch') }
   its('mode') { should cmp '02750' }
 end
 
-%w(jvm.options elasticsearch.yml).each do |f|
-  describe file("/etc/elasticsearch/#{f}") do
-    it { should be_file }
-    it { should be_owned_by('root') }
-    it { should be_grouped_into('elasticsearch') }
-    its('mode') { should cmp '0660' }
-  end
+# plugins should be installed
+describe command('/usr/share/elasticsearch/bin/elasticsearch-plugin list') do
+  its('exit_status') { should eql 0 }
+  its('stdout') { should match(/^discovery-ec2$/) }
 end
 
-%w(x-pack ingest-geoip).each do |d|
-  describe file("/usr/share/elasticsearch/plugins/#{d}") do
-    it { should be_directory }
-  end
+# curator and friends should NOT be installed
+describe command('curator --version') do
+  its('exit_status') { should eql 1 }
+end
+describe command('curator_cli --version') do
+  its('exit_status') { should eql 1 }
+end
+describe command('es_repo_mgr --help') do
+  its('exit_status') { should eql 1 }
 end

@@ -1,6 +1,17 @@
 ---
 driver:
-  name: vagrant
+  name: docker
+  use_sudo: false
+  require_chef_omnibus: false
+  cap_add:
+    - SYS_ADMIN
+  run_options:
+    tmpfs:
+      - /run
+      - /run/lock
+    volume:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    stop-signal: SIGRTMIN+3
 
 provisioner:
   name: ansible_push
@@ -11,12 +22,26 @@ provisioner:
 
 verifier:
   name: inspec
+  inspec_tests:
+      - path: test/integration/shared
 
 platforms:
-  - name: ubuntu-14.04
+  - name: ubuntu-18.04
+    driver_config:
+      image: bdclark/ubuntu-1804-test:latest
+      run_command: /lib/systemd/systemd
   - name: ubuntu-16.04
+    driver_config:
+      image: bdclark/ubuntu-1604-test:latest
+      run_command: /lib/systemd/systemd
 
 suites:
   - name: default
     provisioner:
-      playbook: test/playbooks/default.yml
+      playbook: test/integration/default/playbook.yml
+  - name: 5.x
+    provisioner:
+      playbook: test/integration/5.x/playbook.yml
+  - name: 7.x
+    provisioner:
+      playbook: test/integration/7.x/playbook.yml

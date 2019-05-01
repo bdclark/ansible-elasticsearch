@@ -1,0 +1,35 @@
+---
+- hosts: all
+  become: true
+  pre_tasks:
+
+  vars:
+    es_restart_on_change: true
+    es_heap_size: 500m
+    es_plugins:
+      - plugin: discovery-ec2
+  tasks:
+    - name: install java
+      apt:
+        name: openjdk-8-jre-headless
+      register: _openjdk
+
+    - name: configure java ca-certs
+      command: /var/lib/dpkg/info/ca-certificates-java.postinst configure
+      when: _openjdk.changed
+
+    - name: install elasticsearch
+      include_role:
+        role: elasticsearch
+
+    - name: flush handlers for service restart
+      meta: flush_handlers
+
+    - name: wait for elasticsearch to start
+      uri:
+        url: http://localhost:9200
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 30
+      delay: 2

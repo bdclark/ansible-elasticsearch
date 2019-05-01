@@ -1,32 +1,13 @@
 ---
-# vars file for elasticsearch
-es_major_version: "{{ {{ es_version.split('.')[0] }}"
-
 es_home: /usr/share/elasticsearch
 es_conf_dir: /etc/elasticsearch
 es_pid_dir: /var/run/elasticsearch
 
+es_data_dir_delimited: "{{ es_data_dir if es_data_dir is string else es_data_dir | join(',') }}"
 es_memory_lock_enabled: "{{ es_config['bootstrap.memory_lock'] is defined and es_config['bootstrap.memory_lock']|bool }}"
 
-es_environment_config:
-  ES_HOME: "{{ es_home }}"
-  CONF_DIR: "{{ es_conf_dir }}"
-  ES_PATH_CONF: "{{ es_conf_dir }}"
-  DATA_DIR: "{{ es_data_dir if es_data_dir is string else es_data_dir | join(',') }}"
-  ES_JVM_OPTIONS: "{{ es_conf_dir }}/jvm.properties"
-  ES_STARTUP_SLEEP_TIME: "{{ es_startup_sleep_time }}"
-  LOG_DIR: "{{ es_log_dir }}"
-  MAX_LOCKED_MEMORY: "{% if es_memory_lock_enabled %}unlimited{% else %}{{ es_max_locked_memory }}{% endif %}"
-  MAX_MAP_COUNT: "{{ es_max_map_count }}"
-  MAX_OPEN_FILES: "{{ es_max_open_files }}"
-  PID_DIR: "{{ es_pid_dir }}"
-  RESTART_ON_UPGRADE: "{{ (es_restart_on_upgrade|bool|lower) if es_restart_on_upgrade is not none else es_restart_on_upgrade }}"
-
 es_default_config:
-  cluster.name: "{{ es_cluster_name }}"
-  node.name: "{{ es_node_name }}"
-  path.data: "{{ es_data_dir }}"
+  cluster.name: elasticsearch
+  # 5.3.0 introduced a bug if path.data was an array
+  path.data: "{% if es_version is version('6.0.0', '<') %}{{ es_data_dir_delimited }}{% else %}{{ es_data_dir }}{% endif %}"
   path.logs: "{{ es_log_dir }}"
-
-es_5_default_config:
-  path.conf: "{{ es_conf_dir }}"

@@ -1,0 +1,29 @@
+---
+- name: install curator dependencies
+  package:
+    name: python-virtualenv
+    state: present
+
+- name: install elasticsearch-curator
+  pip:
+    name: elasticsearch-curator
+    virtualenv: "{{ es_curator_install_dir }}"
+    version: "{{ omit if es_curator_version in ['latest', none] else es_curator_version }}"
+    state: "{{ 'latest' if es_curator_version == 'latest' else 'present' }}"
+
+- name: install requests_aws4auth
+  pip:
+    name: requests_aws4auth
+    virtualenv: "{{ es_curator_install_dir }}"
+    state: present
+
+- name: create symlinks
+  file:
+    src: "{{ es_curator_install_dir }}/bin/{{ item }}"
+    dest: "{{ es_curator_bin_dir }}/{{ item }}"
+    state: link
+  with_items:
+    - curator
+    - curator_cli
+    - es_repo_mgr
+  when: es_curator_bin_dir | default(false)

@@ -1,0 +1,36 @@
+---
+- hosts: all
+  become: true
+  vars:
+    es_version: 5.3.0
+    es_data_dir:
+      - /mnt/elasticsearch1
+      - /mnt/elasticsearch2
+    es_heap_size: 500m
+    es_restart_on_change: true
+    es_install_curator: true
+  tasks:
+    - name: install java
+      apt:
+        name: openjdk-8-jre-headless
+      register: _openjdk
+
+    - name: configure java ca-certs
+      command: /var/lib/dpkg/info/ca-certificates-java.postinst configure
+      when: _openjdk.changed
+
+    - name: install elasticsearch
+      include_role:
+        role: elasticsearch
+
+    - name: flush handlers for service restart
+      meta: flush_handlers
+
+    - name: wait for elasticsearch to start
+      uri:
+        url: http://localhost:9200
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 30
+      delay: 2

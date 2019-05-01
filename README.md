@@ -17,7 +17,6 @@ Example Playbook
 - hosts: servers
   vars:
     es_version: "6.2.2"
-    es_cluster_name: mycluster
     es_config:
       bootstrap.memory_lock: true
   roles:

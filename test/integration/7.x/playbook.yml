@@ -1,0 +1,27 @@
+---
+- hosts: all
+  become: true
+  pre_tasks:
+
+  vars:
+    es_version: 7.0.0
+    es_restart_on_change: true
+    es_heap_size: 500m
+    es_plugins:
+      - plugin: discovery-ec2
+  tasks:
+    - name: install elasticsearch
+      include_role:
+        role: elasticsearch
+
+    - name: flush handlers for service restart
+      meta: flush_handlers
+
+    - name: wait for elasticsearch to start
+      uri:
+        url: http://localhost:9200
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 30
+      delay: 2
