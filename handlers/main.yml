@@ -7,7 +7,4 @@
   service:
     name: elasticsearch
     state: restarted
-  when:
-    - es_restart_on_change
-    - es_enable_service
-    - es_start_service
+  when: es_restart_on_change and es_enable_service and es_start_service
