@@ -3,7 +3,7 @@ es_home: /usr/share/elasticsearch
 es_conf_dir: /etc/elasticsearch
 es_pid_dir: /var/run/elasticsearch
 
-es_data_dir_delimited: "{{ es_data_dir if es_data_dir is string else es_data_dir | join(',') }}"
+es_data_dir_delimited: "{{ es_data_dir if es_data_dir is string else (es_data_dir | join(',')) }}"
 es_memory_lock_enabled: "{{ es_config['bootstrap.memory_lock'] is defined and es_config['bootstrap.memory_lock']|bool }}"
 
 es_default_config:

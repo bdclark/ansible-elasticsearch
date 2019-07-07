@@ -18,7 +18,7 @@ describe file('/etc/elasticsearch') do
   its('mode') { should cmp '02750' }
 end
 
-%w(jvm.options elasticsearch.yml).each do |f|
+%w[jvm.options elasticsearch.yml].each do |f|
   describe file("/etc/elasticsearch/#{f}") do
     it { should be_file }
     it { should be_owned_by('root') }

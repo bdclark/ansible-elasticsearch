@@ -1,4 +1,3 @@
-
 [1, 2].each do |d|
   describe file("/mnt/elasticsearch#{d}") do
     it { should be_directory }
@@ -9,13 +8,13 @@
 end
 
 # curator and friends should be installed
-describe command('curator --version') do
+describe command('/usr/local/bin/curator --version') do
   its('exit_status') { should eql 0 }
 end
-describe command('curator_cli --version') do
+describe command('/usr/local/bin/curator_cli --version') do
   its('exit_status') { should eql 0 }
 end
-describe command('es_repo_mgr --help') do
+describe command('/usr/local/bin/es_repo_mgr --help') do
   its('exit_status') { should eql 0 }
 end
 

@@ -1,0 +1,16 @@
+---
+- name: add elasticsearch repository
+  yum_repository:
+    name: "elastic-{{ es_version.split('.')[0] }}.x"
+    description: "Elasticsearch repository for {{ es_version.split('.')[0] }}.x packages"
+    baseurl: https://artifacts.elastic.co/packages/{{ es_version.split('.')[0] }}.x/yum
+    gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    gpgcheck: true
+
+- name: install elasticsearch
+  become: true
+  yum:
+    name: elasticsearch-{{ es_version }}-1
+    state: present
+  register: _es_install
+  notify: restart elasticsearch

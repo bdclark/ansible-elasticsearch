@@ -12,12 +12,14 @@ describe command('/usr/share/elasticsearch/bin/elasticsearch-plugin list') do
 end
 
 # curator and friends should NOT be installed
-describe command('curator --version') do
+describe command('/usr/local/bin/curator --version') do
   its('exit_status') { should eql 1 }
 end
-describe command('curator_cli --version') do
+
+describe command('/usr/local/bin/curator_cli --version') do
   its('exit_status') { should eql 1 }
 end
-describe command('es_repo_mgr --help') do
+
+describe command('/usr/local/bin/es_repo_mgr --help') do
   its('exit_status') { should eql 1 }
 end

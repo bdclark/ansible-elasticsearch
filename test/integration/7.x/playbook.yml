@@ -1,8 +1,6 @@
 ---
 - hosts: all
   become: true
-  pre_tasks:
-
   vars:
     es_version: 7.0.0
     es_restart_on_change: true
@@ -11,8 +9,8 @@
       - plugin: discovery-ec2
   tasks:
     - name: install elasticsearch
-      include_role:
-        role: elasticsearch
+      import_role:
+        name: elasticsearch
 
     - name: flush handlers for service restart
       meta: flush_handlers

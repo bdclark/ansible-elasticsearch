@@ -1,6 +1,6 @@
 ---
 # installation/package settings
-es_version: 6.7.0
+es_version: 6.8.1
 es_apt_key: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
 es_apt_url: "deb https://artifacts.elastic.co/packages/{{ es_version.split('.')[0] }}.x/apt stable main"
 

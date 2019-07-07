@@ -10,6 +10,7 @@
   register: _es_installed_plugins
   changed_when: false
   ignore_errors: true
+  check_mode: false
 
 - name: determine plugins to remove/install (not during re-install)
   set_fact:
@@ -25,7 +26,7 @@
     _es_plugins_to_remove: "{{ _es_installed_plugins.stdout_lines | default([]) }}"
     # add all listed in es_plugins
     _es_plugins_to_install: "{{ es_plugins | json_query('[*].plugin') | default([]) }}"
-  when: es_plugins_reinstall
+  when: es_plugins_reinstall | bool
 
 - name: remove elasticsearch plugins
   command: "{{ es_home }}/bin/elasticsearch-plugin remove {{ item }} --silent"

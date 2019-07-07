@@ -1,8 +1,6 @@
 ---
 - hosts: all
   become: true
-  pre_tasks:
-
   vars:
     es_restart_on_change: true
     es_heap_size: 500m
@@ -10,17 +8,19 @@
       - plugin: discovery-ec2
   tasks:
     - name: install java
-      apt:
-        name: openjdk-8-jre-headless
+      package:
+        name: "{{ (ansible_os_family == 'Debian') | ternary('openjdk-8-jre-headless', 'java-1.8.0-openjdk-headless') }}"
+        state: present
       register: _openjdk
 
     - name: configure java ca-certs
       command: /var/lib/dpkg/info/ca-certificates-java.postinst configure
-      when: _openjdk.changed
+      when: _openjdk.changed and ansible_os_family == 'Debian'
+      tags: ["skip_ansible_lint"]
 
     - name: install elasticsearch
-      include_role:
-        role: elasticsearch
+      import_role:
+        name: elasticsearch
 
     - name: flush handlers for service restart
       meta: flush_handlers

@@ -1,10 +1,17 @@
-# elasticsearch
+# Elasticsearch Ansible Role
 
-Installs and configures Elasticsearch 5.x or 6.x.
+Installs and configures Elasticsearch 5.x, 6.x, or 7.x.
 
 Requirements
 ------------
-Ansible 2.2+
+This role is tested on Ansible 2.6, 2.7, and 2.8 using the following distributions:
+
+- Ubuntu 18.04
+- Ubuntu 16.04
+- Centos 7
+- Amazon Linux 2
+
+Other operating systems and versions may work, YMMV.
 
 Role Variables
 --------------
