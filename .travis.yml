@@ -24,7 +24,7 @@ before_install:
   - export BUNDLE_GEMFILE="$(pwd)/Gemfile"
 
 install:
-  - sudo pip install ansible==$ANSIBLE_VERSION ansible-lint yamllint
+  - pip install ansible==$ANSIBLE_VERSION ansible-lint yamllint jmespath
   - bundle install
 
 script:
