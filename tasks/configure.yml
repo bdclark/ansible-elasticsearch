@@ -70,7 +70,6 @@
     owner: root
     group: root
     mode: "0644"
-  register: _es_systemd_dropin
   notify:
     - reload systemd
     - restart elasticsearch
